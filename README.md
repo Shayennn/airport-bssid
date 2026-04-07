@@ -47,6 +47,8 @@ TL;DR
 Ping me or send me PR if you know how to get `CoreWLAN` returning BSSID ;)
 It looks like Apple's problem. Use SSID and channel number instead.
 
+The current package build embeds a location usage description and will report the current Location Services state when macOS withholds every SSID/BSSID. If `bssid scan` shows `<unavailable>` for every network, grant location access when prompted and rerun the command.
+
 ### What does not work**
 
 #### Signing the app

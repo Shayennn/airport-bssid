@@ -33,6 +33,8 @@ private func execute(flags: Flags, args: [String]) {
         return
     }
 
+    _ = requestLocationAccessIfNeeded()
+
     guard let networks = try? scanNetworks(interface) else {
         return
     }

@@ -21,6 +21,7 @@ private func execute(flags: Flags, args: [String]) {
     // Execute code here
     let ssidNames = Set(args)
     let ssidName: String? = args.count == 1 ? args[0] : nil
+    let locationAccess = requestLocationAccessIfNeeded()
     if (args.count > 0) {
         print("Scanning \(ssidNames.joined(separator: ", "))")
     } else {
@@ -38,8 +39,28 @@ private func execute(flags: Flags, args: [String]) {
         return
     }
 
-    for network in networks.filter({ ssidNames.count > 0 ? ssidNames.contains($0.ssid ?? "") : true }).sorted(by: { $0.rssiValue > $1.rssiValue }) {
-        print(String(format: "ssid: %@, bssid: %@, channel: %d, dBm %d", network.ssid ?? "",
-                network.bssid ?? "", network.wlanChannel?.channelNumber ?? -1, network.rssiValue))
+    let filteredNetworks = networks
+        .filter({ ssidNames.count > 0 ? ssidNames.contains($0.ssid ?? "") : true })
+        .sorted(by: { $0.rssiValue > $1.rssiValue })
+
+    if filteredNetworks.isEmpty {
+        print("No matching access points found")
+        return
+    }
+
+    if filteredNetworks.allSatisfy(networkIdentifiersUnavailable) {
+        print("Warning: macOS returned nearby Wi-Fi radios, but every SSID/BSSID is unavailable.")
+        print("Location access status: \(locationAccess.summary)")
+        print("Rebuild with the current package, grant Location Services access when prompted, or use `bssid connect --ssid <ssid> --channel <channel>` as a fallback.")
+    }
+
+    for network in filteredNetworks {
+        print(String(
+            format: "ssid: %@, bssid: %@, channel: %d, dBm %d",
+            networkFieldValue(network.ssid, placeholder: "<unavailable>"),
+            networkFieldValue(network.bssid, placeholder: "<unavailable>"),
+            network.wlanChannel?.channelNumber ?? -1,
+            network.rssiValue
+        ))
     }
 }
